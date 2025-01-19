@@ -15,14 +15,14 @@ class Dice {
 class DiceParser {
   static parse(args) {
     if (args.length < 3) {
-      throw new Error("This is a mistake: it is necessary to discard at least three dice.");
+      throw new Error("At least three dice configurations are required.");
     }
 
     return args.map((arg) => {
       const values = arg.split(",").map(Number);
       if (values.some(isNaN) || values.length < 1) {
         throw new Error(
-          `Error: incorrect cube format '${arg}'. The cube must contain numbers separated by commas.`
+          `Invalid die format '${arg}'. Dice must be a comma-separated list of integers.`
         );
       }
       return new Dice(values);
@@ -73,11 +73,11 @@ class ProbabilityCalculator {
 
   static displayProbabilities(dices) {
     const probabilities = this.calculateProbabilities(dices);
-    console.log("\nprobability table:");
-    console.log("   " + dices.map((_, i) => `К${i}`).join("  "));
+    console.log("\nProbability Table:");
+    console.log("   " + dices.map((_, i) => `D${i}`).join("  "));
 
     probabilities.forEach((row, i) => {
-      console.log(`К${i} ` + row.map((prob) => `${prob}`).join("  "));
+      console.log(`D${i} ` + row.map((prob) => `${prob}`).join("  "));
     });
     console.log();
   }
@@ -102,23 +102,23 @@ class NonTransitiveDiceGame {
     const computerChoice = crypto.randomInt(0, 2);
     const hmac = HMACGenerator.generateHMAC(key, computerChoice);
 
-    console.log(`We determine who goes first. HMAC=${hmac}`);
+    console.log(`Determining who goes first. HMAC=${hmac}`);
     const userGuess = await this.readInput(
       "Try to guess the number (0 or 1): "
     );
 
     console.log(`My number: ${computerChoice} (Key=${key})`);
     if (parseInt(userGuess, 10) === computerChoice) {
-      console.log("You guessed right. You go first.");
+      console.log("You guessed correctly. You go first.");
       return true;
     } else {
-      console.log("You guessed wrong. The computer goes first.");
+      console.log("You guessed incorrectly. The computer goes first.");
       return false;
     }
   }
 
   async userSelectDice() {
-    console.log("Choose a cube:");
+    console.log("Choose a die:");
     this.dices.forEach((dice, index) => {
       console.log(`${index} - ${JSON.stringify(dice.values)}`);
     });
@@ -126,49 +126,50 @@ class NonTransitiveDiceGame {
 
     const choice = await this.readInput("Your choice: ");
     if (choice.toLowerCase() === "x") {
-      console.log("Exit the game...");
+      console.log("Exiting the game...");
       process.exit(0);
     }
 
     const diceIndex = parseInt(choice, 10);
     if (isNaN(diceIndex) || diceIndex < 0 || diceIndex >= this.dices.length) {
-      console.error("Wrong choice. Try again.");
+      console.error("Invalid choice. Try again.");
       return await this.userSelectDice();
     }
 
     this.userDice = this.dices[diceIndex];
-    console.log(`You have chosen a cube: ${JSON.stringify(this.userDice.values)}`);
+    console.log(`You chose the die: ${JSON.stringify(this.userDice.values)}`);
   }
 
   computerTurn() {
     console.log("The computer selects a die...");
-    const computerDice = this.dices[0]; 
+    const computerDice = this.dices[0];
     console.log(
-      `The computer selected a cube: ${JSON.stringify(computerDice.values)}`
+      `The computer chose the die: ${JSON.stringify(computerDice.values)}`
     );
 
     if (!this.userDice) {
-      console.error("Error: The user did not select a cube!");
+      console.error("Error: The user did not select a die!");
       return;
     }
 
     const computerRoll = computerDice.roll();
-    console.log(`Throwing of computer: ${computerRoll}`);
+    console.log(`Computer's roll: ${computerRoll}`);
 
     const userRoll = this.userDice.roll();
-    console.log(`Your throw: ${userRoll}`);
+    console.log(`Your roll: ${userRoll}`);
 
     if (computerRoll > userRoll) {
       console.log(`The computer wins (${computerRoll} > ${userRoll})!`);
     } else if (computerRoll < userRoll) {
-      console.log(`You're winning (${userRoll} > ${computerRoll})!`);
+      console.log(`You win (${userRoll} > ${computerRoll})!`);
     } else {
-      console.log(`Draw (${userRoll} = ${computerRoll})!`);
+      console.log(`It's a draw (${userRoll} = ${computerRoll})!`);
     }
   }
 
   async start() {
-    console.log("Welcome to the intransitive dice game!");
+    console.log("Welcome to the Non-Transitive Dice Game!");
+
     ProbabilityCalculator.displayProbabilities(this.dices);
 
     const userGoesFirst = await this.determineFirstMove();
@@ -188,12 +189,23 @@ class NonTransitiveDiceGame {
 // Main
 try {
   const args = process.argv.slice(2);
+
+  if (args.length === 1 && args[0].toLowerCase() === "help") {
+    console.log("Usage: node game.js <dice1> <dice2> <dice3>");
+    console.log("Example: node game.js 2,2,4,4,9,9 6,8,1,1,8,6 7,5,3,7,5,3");
+    console.log("Each die should be a comma-separated list of integers.");
+    process.exit(0);
+  }
+
   const dices = DiceParser.parse(args);
   const game = new NonTransitiveDiceGame(dices);
   game.start();
 } catch (error) {
   console.error(error.message);
   console.log(
-    "Launch example: node game.js 2,2,4,4,9,9 6,8,1,1,8,6 7,5,3,7,5,3"
+    "Usage example: node game.js 2,2,4,4,9,9 6,8,1,1,8,6 7,5,3,7,5,3"
+  );
+  console.log(
+    "Each die should be specified as a comma-separated list of integers."
   );
 }
