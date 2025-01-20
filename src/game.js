@@ -1,5 +1,6 @@
 const readline = require("readline");
 const crypto = require("crypto");
+const AsciiTable = require("ascii-table");
 
 class Dice {
   constructor(values) {
@@ -73,13 +74,15 @@ class ProbabilityCalculator {
 
   static displayProbabilities(dices) {
     const probabilities = this.calculateProbabilities(dices);
-    console.log("\nProbability Table:");
-    console.log("   " + dices.map((_, i) => `D${i}`).join("  "));
+
+    const table = new AsciiTable("Probability Table");
+    table.setHeading(" ", ...dices.map((_, i) => `D${i}`));
 
     probabilities.forEach((row, i) => {
-      console.log(`D${i} ` + row.map((prob) => `${prob}`).join("  "));
+      table.addRow(`D${i}`, ...row);
     });
-    console.log();
+
+    console.log(table.toString());
   }
 }
 
@@ -105,20 +108,16 @@ class NonTransitiveDiceGame {
     console.log(
       "4. Understand probabilities using the displayed Probability Table."
     );
-    console.log(
-      "5. Play fairly! The computer chooses first if you guess wrong in the HMAC round.\n"
-    );
+    console.log("5. Play fairly! The computer uses HMAC to ensure fairness.\n");
   }
 
   async determineFirstMove() {
     const key = HMACGenerator.generateKey();
-    const computerChoice = crypto.randomInt(0, 2);
+    const computerChoice = crypto.randomInt(0, 6);
     const hmac = HMACGenerator.generateHMAC(key, computerChoice);
 
-    console.log(`Determining who goes first. HMAC=${hmac}`);
-    const userGuess = await this.readInput(
-      "Try to guess the number (0 or 1): "
-    );
+    console.log(`HMAC=${hmac}`);
+    const userGuess = await this.readInput("Guess the number (0 to 5): ");
 
     console.log(`My number: ${computerChoice} (Key=${key})`);
     if (parseInt(userGuess, 10) === computerChoice) {
