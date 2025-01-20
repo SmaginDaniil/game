@@ -74,9 +74,8 @@ class ProbabilityCalculator {
 
   static displayProbabilities(dices) {
     const probabilities = this.calculateProbabilities(dices);
-
     const table = new AsciiTable("Probability Table");
-    table.setHeading(" ", ...dices.map((_, i) => `D${i}`));
+    table.setHeading("", ...dices.map((_, i) => `D${i}`));
 
     probabilities.forEach((row, i) => {
       table.addRow(`D${i}`, ...row);
@@ -100,15 +99,15 @@ class NonTransitiveDiceGame {
     return new Promise((resolve) => this.rl.question(prompt, resolve));
   }
 
-  async showHelp() {
-    console.log("\nHelp Menu:");
-    console.log("1. Select a die by entering its number.");
-    console.log("2. Exit the game by typing 'X'.");
-    console.log("3. Use '? - help' to display this menu again.");
-    console.log(
-      "4. Understand probabilities using the displayed Probability Table."
-    );
-    console.log("5. Play fairly! The computer uses HMAC to ensure fairness.\n");
+  displayHelp() {
+    console.log("\n--- HELP MENU ---");
+    console.log("Rules:");
+    console.log("1. You and the computer take turns choosing dice.");
+    console.log("2. Both roll their dice, and the higher number wins.");
+    console.log("\nCommands:");
+    console.log("X - Exit the game.");
+    console.log("? - Show this help menu.");
+    console.log();
   }
 
   async determineFirstMove() {
@@ -130,7 +129,7 @@ class NonTransitiveDiceGame {
   }
 
   async userSelectDice() {
-    console.log("\nChoose a die:");
+    console.log("Choose a die:");
     this.dices.forEach((dice, index) => {
       console.log(`${index} - ${JSON.stringify(dice.values)}`);
     });
@@ -141,9 +140,8 @@ class NonTransitiveDiceGame {
     if (choice.toLowerCase() === "x") {
       console.log("Exiting the game...");
       process.exit(0);
-    }
-    if (choice === "?") {
-      await this.showHelp();
+    } else if (choice === "?") {
+      this.displayHelp();
       return await this.userSelectDice();
     }
 
@@ -157,33 +155,6 @@ class NonTransitiveDiceGame {
     console.log(`You chose the die: ${JSON.stringify(this.userDice.values)}`);
   }
 
-  computerTurn() {
-    console.log("The computer selects a die...");
-    const computerDice = this.dices[0];
-    console.log(
-      `The computer chose the die: ${JSON.stringify(computerDice.values)}`
-    );
-
-    if (!this.userDice) {
-      console.error("Error: The user did not select a die!");
-      return;
-    }
-
-    const computerRoll = computerDice.roll();
-    console.log(`Computer's roll: ${computerRoll}`);
-
-    const userRoll = this.userDice.roll();
-    console.log(`Your roll: ${userRoll}`);
-
-    if (computerRoll > userRoll) {
-      console.log(`The computer wins (${computerRoll} > ${userRoll})!`);
-    } else if (computerRoll < userRoll) {
-      console.log(`You win (${userRoll} > ${computerRoll})!`);
-    } else {
-      console.log(`It's a draw (${userRoll} = ${computerRoll})!`);
-    }
-  }
-
   async start() {
     console.log("Welcome to the Non-Transitive Dice Game!");
 
@@ -193,10 +164,38 @@ class NonTransitiveDiceGame {
 
     if (userGoesFirst) {
       await this.userSelectDice();
-      this.computerTurn();
+      const computerDice = this.dices[0];
+      const computerRoll = computerDice.roll();
+      const userRoll = this.userDice.roll();
+
+      console.log(`Computer's roll: ${computerRoll}`);
+      console.log(`Your roll: ${userRoll}`);
+
+      if (userRoll > computerRoll) {
+        console.log(`You win (${userRoll} > ${computerRoll})!`);
+      } else if (userRoll < computerRoll) {
+        console.log(`The computer wins (${computerRoll} > ${userRoll})!`);
+      } else {
+        console.log(`It's a draw (${userRoll} = ${computerRoll})!`);
+      }
     } else {
-      this.computerTurn();
+      const computerDice = this.dices[0];
+      console.log(`The computer chose the die: ${JSON.stringify(computerDice.values)}`);
+
+      const computerRoll = computerDice.roll();
+      console.log(`Computer's roll: ${computerRoll}`);
+
       await this.userSelectDice();
+      const userRoll = this.userDice.roll();
+      console.log(`Your roll: ${userRoll}`);
+
+      if (userRoll > computerRoll) {
+        console.log(`You win (${userRoll} > ${computerRoll})!`);
+      } else if (userRoll < computerRoll) {
+        console.log(`The computer wins (${computerRoll} > ${userRoll})!`);
+      } else {
+        console.log(`It's a draw (${userRoll} = ${computerRoll})!`);
+      }
     }
 
     this.rl.close();
