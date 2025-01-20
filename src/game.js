@@ -97,6 +97,15 @@ class NonTransitiveDiceGame {
     return new Promise((resolve) => this.rl.question(prompt, resolve));
   }
 
+  async showHelp() {
+    console.log("\nHelp Menu:");
+    console.log("1. Select a die by entering its number.");
+    console.log("2. Exit the game by typing 'X'.");
+    console.log("3. Use '? - help' to display this menu again.");
+    console.log("4. Understand probabilities using the displayed Probability Table.");
+    console.log("5. Play fairly! The computer chooses first if you guess wrong in the HMAC round.\n");
+  }
+
   async determineFirstMove() {
     const key = HMACGenerator.generateKey();
     const computerChoice = crypto.randomInt(0, 2);
@@ -118,16 +127,21 @@ class NonTransitiveDiceGame {
   }
 
   async userSelectDice() {
-    console.log("Choose a die:");
+    console.log("\nChoose a die:");
     this.dices.forEach((dice, index) => {
       console.log(`${index} - ${JSON.stringify(dice.values)}`);
     });
     console.log("X - Exit");
+    console.log("? - Help");
 
     const choice = await this.readInput("Your choice: ");
     if (choice.toLowerCase() === "x") {
       console.log("Exiting the game...");
       process.exit(0);
+    }
+    if (choice === "?") {
+      await this.showHelp();
+      return await this.userSelectDice();
     }
 
     const diceIndex = parseInt(choice, 10);
