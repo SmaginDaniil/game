@@ -102,8 +102,12 @@ class NonTransitiveDiceGame {
     console.log("1. Select a die by entering its number.");
     console.log("2. Exit the game by typing 'X'.");
     console.log("3. Use '? - help' to display this menu again.");
-    console.log("4. Understand probabilities using the displayed Probability Table.");
-    console.log("5. Play fairly! The computer chooses first if you guess wrong in the HMAC round.\n");
+    console.log(
+      "4. Understand probabilities using the displayed Probability Table."
+    );
+    console.log(
+      "5. Play fairly! The computer chooses first if you guess wrong in the HMAC round.\n"
+    );
   }
 
   async determineFirstMove() {
@@ -200,7 +204,6 @@ class NonTransitiveDiceGame {
   }
 }
 
-// Main
 try {
   const args = process.argv.slice(2);
 
